@@ -5,6 +5,10 @@
 # Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
+from stockIn import Ui_Form
+from report import  Ui_Form_Report
+from saleHistory import Ui_Form3
+import sqlite3
 from reportlab.lib.pagesizes import letter
 from num2words import num2words
 from reportlab.lib.units import inch
@@ -13,6 +17,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import date
+from PyQt5.QtCore import QDate
 
 class Ui_MainWindow(object):
     def __init__(self):
@@ -101,6 +106,12 @@ class Ui_MainWindow(object):
         print("generate mobile bill PDF")
         Ui_MainWindow.create_mobile_pdf(self)
         Ui_MainWindow.open_mobile_Pdf(self)
+
+    def click_method_stock_in(self):
+        self.window2 = QtWidgets.QMainWindow()
+        self.ui = Ui_Form()
+        self.ui.setupUi(self.window2)
+        self.window2.show()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -529,6 +540,22 @@ class Ui_MainWindow(object):
         self.pushButton_4.clicked.connect(self.click_method_generatebill)
         # checkbox state change
         self.checkBox.stateChanged.connect(self.state_changed)
+        self.pushButton_7.clicked.connect(self.click_method_stock_in)
+        self.pushButton_6.clicked.connect(self.save_bill)
+        self.pushButton_8.clicked.connect(self.sale)
+        self.pushButton_10.clicked.connect(self.reports)
+
+    def sale(self):
+        self.window3 = QtWidgets.QMainWindow()
+        self.ui = Ui_Form3()
+        self.ui.setupUi3(self.window3)
+        self.window3.show()
+
+    def reports(self):
+        self.window_report = QtWidgets.QMainWindow()
+        self.ui_report = Ui_Form_Report()
+        self.ui_report.setupUi_Report(self.window_report)
+        self.window_report.show()
 
     def customer_data(self):
         self.first_name = self.lineEdit_3.text()
@@ -778,6 +805,44 @@ class Ui_MainWindow(object):
         canvas.drawString(450, 205, "0")
 
         canvas.save()
+
+    def save_bill(self):
+        self.first_name = self.lineEdit_3.text()
+        self.middle_name = self.lineEdit_4.text()
+        self.last_name = self.lineEdit_5.text()
+        cust_name = str(self.first_name+" "+self.middle_name+" "+self.last_name)
+        self.customer_address = self.lineEdit_6.text()
+        self.customer_pin = self.lineEdit_7.text()
+        self.customer_mob = self.lineEdit_8.text()
+        self.customer_pan = self.lineEdit_9.text()
+        self.customer_state = str(self.comboBox.currentText())
+        self.customer_gst_tin = self.lineEdit_10.text()
+        self.customer_vat_tin = self.lineEdit_21.text()
+        self.customer_email = self.lineEdit_22.text()
+        self.payment_mode = str(self.comboBox_2.currentText())
+        self.item_name = self.tableWidget.item(0, 0).text()
+        self.item_hsn_code = self.tableWidget.item(0, 1).text()
+        self.item_model_number = self.tableWidget.item(0, 2).text()
+        self.item_ime_number = self.tableWidget.item(0, 3).text()
+        self.item_rate = self.tableWidget.item(0, 4).text()
+        self.item_quantity = self.tableWidget.item(0, 5).text()
+        self.item_amount = str(int(self.item_rate) * int(self.item_quantity))
+        buy_amount = 0
+        vendor = "abc"
+        data = [self.invoice_number, cust_name, self.item_name, self.item_model_number, self.item_hsn_code, self.item_ime_number,
+                self.item_amount, buy_amount, self.today_date, self.item_rate, self.item_quantity, self.state_gst_amount,
+                self.central_gst_amount, self.grand_total, self.customer_address, self.customer_pin, self.customer_mob,
+                self.payment_mode, self.customer_gst_tin, self.customer_vat_tin, self.customer_state, vendor]
+
+        conn = sqlite3.connect('mymobileshoppy.db')
+        c = conn.cursor()
+        sql = "INSERT INTO sales (Invoice_number,Cust_name, Prod_name, Model_number, HSR_code, IMEI_number, Sale_amount, Buy_amount, Purchse_Date, Rate, Quantity, SGST_amount, CGST_amount, Grand_amount, Address, PIN, Phone_number, Payment_mode, GST_TIN, VAT_TIN, Cust_State, Vendor)" \
+              " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        c.execute(sql, data)
+        conn.commit()
+        print("Records saved successfully")
+        conn.close()
+
 
 if __name__ == "__main__":
     import sys
